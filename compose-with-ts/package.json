@@ -1,0 +1,12 @@
+{
+  "name": "compose-with-ts",
+  "version": "1.0.0",
+  "description": "compose-experiment",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "igor.pieruccini",
+  "license": "ISC"
+}
