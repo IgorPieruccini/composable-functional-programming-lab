@@ -1,0 +1,37 @@
+{
+  "name": "using-compose-web",
+  "version": "1.0.0",
+  "description": "testing composable functions",
+  "private": true,
+  "scripts": {
+    "start": "webpack serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IgorPieruccini/composable-functional-programming-lab.git"
+  },
+  "keywords": [
+    "composable",
+    "functional",
+    "programming"
+  ],
+  "author": "igor pieruccini",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IgorPieruccini/composable-functional-programming-lab/issues"
+  },
+  "homepage": "https://github.com/IgorPieruccini/composable-functional-programming-lab#readme",
+  "dependencies": {
+    "@types/ramda": "^0.27.58",
+    "ramda": "^0.27.1",
+    "ts-node": "^10.4.0"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^5.5.0",
+    "ts-loader": "^9.2.6",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
+  }
+}
