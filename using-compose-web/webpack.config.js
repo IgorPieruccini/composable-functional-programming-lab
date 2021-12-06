@@ -5,6 +5,9 @@ module.exports = {
   mode: "development",
   devtool: "inline-source-map",
   entry: "./src/index.ts",
+  resolve: {
+    extensions: [".ts", ".js", ".json"],
+  },
   output: {
     path: path.join(__dirname, "dist"),
     filename: "[name].js",

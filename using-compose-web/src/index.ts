@@ -1,39 +1,63 @@
-var request = window.indexedDB.open("link-db");
+import { compose } from "./compose";
+import {
+  addElementTo,
+  addInnerHTML,
+  addOnClick,
+  addPlaceHolder,
+  getElementById,
+  getValueFrom,
+} from "./utils";
 
-request.onupgradeneeded = (ev: Event) => {
-  console.log("on upgrade needed");
+let connection: IDBDatabase;
+const request = window.indexedDB.open("app-name-db", 1);
+
+request.onupgradeneeded = () => {
   const db = request.result;
-  const res = db.createObjectStore("igor");
-  const t = res.add(
-    {
-      title: "igor",
-      groupId: "default",
-      url: "igor.url",
-      userId: "igor",
-    },
-    "igor"
-  );
+  db.createObjectStore("names");
+};
 
-  t.onsuccess = (ev: Event) => {
-    console.log("on success t", { ev });
+request.onsuccess = function (this: IDBRequest<IDBDatabase>) {
+  connection = this.result;
+};
+
+request.onerror = (ev) => {};
+
+export const addNameToDB = () => (name: string) => {
+  const transaction = connection.transaction("names", "readwrite");
+  const store = transaction.objectStore("names");
+  const request = store.add(name, name);
+
+  request.onerror = (e) => {
+    console.log({ e });
+  };
+
+  request.onsuccess = (e) => {
+    console.log({ e });
   };
 };
 
-request.onsuccess = (ev: Event) => {
-  console.log("on success request", { ev });
-  const db = request.result;
-  const res = db.createObjectStore("link");
-  const t = res.add(
-    {
-      title: "igor",
-      groupId: "default",
-      url: "igor.url",
-      userId: "igor",
-    },
-    "igor"
+const init = () => {
+  const addName = compose(
+    getElementById("name-input"),
+    getValueFrom(),
+    addNameToDB()
   );
+
+  const createButton = compose(
+    addElementTo("button"),
+    addInnerHTML("Add name"),
+    addOnClick(() => addName(null))
+  );
+
+  const createInput = compose(
+    addElementTo("p"),
+    addInnerHTML("name: "),
+    addElementTo("input", "name-input"),
+    addPlaceHolder("username")
+  );
+
+  createInput<HTMLInputElement>(document.body);
+  createButton<HTMLButtonElement>(document.body);
 };
 
-request.onerror = (ev) => {
-  console.log("error", { ev });
-};
+init();
