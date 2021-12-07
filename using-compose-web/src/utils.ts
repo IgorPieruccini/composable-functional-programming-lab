@@ -1,4 +1,4 @@
-export const addElementTo =
+export const addElement =
   (elementTag: keyof HTMLElementTagNameMap, id?: string) =>
   (element: HTMLElement) => {
     const _el = document.createElement(elementTag);
@@ -8,7 +8,9 @@ export const addElementTo =
   };
 
 export const getElementById = (id: string) => () => {
-  return document.getElementById(id);
+  const element = document.getElementById(id);
+  if (element) return element;
+  throw "could not find element";
 };
 
 export const addInnerHTML = (val: string) => (element: HTMLElement) => {
@@ -21,11 +23,11 @@ export const addOnClick = (func: Function) => (element: HTMLElement) => {
   return element;
 };
 
-export const addPlaceHolder = (val: string) => (element: HTMLInputElement) => {
-  element.placeholder = val;
+export const addPlaceHolder = (val: string) => (element: HTMLElement) => {
+  (element as HTMLInputElement).placeholder = val;
   return element;
 };
 
-export const getValueFrom = () => (element: HTMLInputElement) => {
-  return element.value;
+export const getValueFrom = () => (element: HTMLElement) => {
+  return (element as HTMLInputElement).value;
 };

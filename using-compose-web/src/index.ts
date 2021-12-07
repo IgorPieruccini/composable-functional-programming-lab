@@ -1,6 +1,6 @@
-import { compose } from "./compose";
+import { compose } from "ramda";
 import {
-  addElementTo,
+  addElement,
   addInnerHTML,
   addOnClick,
   addPlaceHolder,
@@ -18,46 +18,74 @@ request.onupgradeneeded = () => {
 
 request.onsuccess = function (this: IDBRequest<IDBDatabase>) {
   connection = this.result;
+  init();
 };
 
-request.onerror = (ev) => {};
+request.onerror = (ev) => {
+  console.log({ ev });
+};
 
-export const addNameToDB = () => (name: string) => {
+const addNameToDB = () => (name: string) => {
   const transaction = connection.transaction("names", "readwrite");
   const store = transaction.objectStore("names");
   const request = store.add(name, name);
 
-  request.onerror = (e) => {
-    console.log({ e });
+  request.onerror = (ev) => {
+    console.log({ ev });
   };
 
-  request.onsuccess = (e) => {
-    console.log({ e });
+  request.onsuccess = (ev) => {
+    console.log({ ev });
   };
 };
 
-const init = () => {
+const listDB =
+  <T>(storeName: string) =>
+  () => {
+    return new Promise((resolve, reject) => {
+      const transaction = connection.transaction(storeName, "readonly");
+      const store = transaction.objectStore(storeName);
+      const cursor = store.openCursor();
+      const values: T[] = [];
+      cursor.onsuccess = (ev: Event) => {
+        const val = cursor.result;
+        if (val) {
+          values.push(val.value);
+          val.continue();
+        } else {
+          resolve(values);
+        }
+      };
+      cursor.onerror = (ev: Event) => {
+        console.log({ ev });
+        reject(ev);
+      };
+    });
+  };
+
+const init = async () => {
+  const createNameList = compose(listDB("names"));
+
   const addName = compose(
-    getElementById("name-input"),
+    addNameToDB(),
     getValueFrom(),
-    addNameToDB()
+    getElementById("name-input")
   );
 
   const createButton = compose(
-    addElementTo("button"),
     addInnerHTML("Add name"),
-    addOnClick(() => addName(null))
+    addOnClick(() => addName()),
+    addElement("button")
   );
 
   const createInput = compose(
-    addElementTo("p"),
     addInnerHTML("name: "),
-    addElementTo("input", "name-input"),
-    addPlaceHolder("username")
+    addPlaceHolder("username"),
+    addElement("input", "name-input")
   );
 
-  createInput<HTMLInputElement>(document.body);
-  createButton<HTMLButtonElement>(document.body);
+  createInput(document.body);
+  createButton(document.body);
+  const names = await createNameList();
+  console.log(JSON.stringify(names));
 };
-
-init();
