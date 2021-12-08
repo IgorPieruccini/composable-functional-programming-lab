@@ -1,4 +1,4 @@
-import { compose } from "ramda";
+import { ap, apply, compose, composeP, composeWith, forEach } from "ramda";
 import {
   addElement,
   addInnerHTML,
@@ -6,6 +6,7 @@ import {
   addPlaceHolder,
   getElementById,
   getValueFrom,
+  removeElement,
 } from "./utils";
 
 let connection: IDBDatabase;
@@ -41,7 +42,7 @@ const addNameToDB = () => (name: string) => {
 
 const listDB =
   <T>(storeName: string) =>
-  () => {
+  (): Promise<T[]> => {
     return new Promise((resolve, reject) => {
       const transaction = connection.transaction(storeName, "readonly");
       const store = transaction.objectStore(storeName);
@@ -64,7 +65,20 @@ const listDB =
   };
 
 const init = async () => {
-  const createNameList = compose(listDB("names"));
+  const createItemList = forEach((name: string) => {
+    compose(
+      addInnerHTML(name),
+      addElement("li"),
+      getElementById("name-list")
+    )();
+  });
+
+  const removeItemList = compose(removeElement(), getElementById("name-list"));
+
+  const createNameList = compose(
+    listDB<string>("names"),
+    addElement("ul", "name-list")
+  );
 
   const addName = compose(
     addNameToDB(),
@@ -72,9 +86,16 @@ const init = async () => {
     getElementById("name-input")
   );
 
+  const onCreate = async () => {
+    addName();
+    removeItemList();
+    const names = await createNameList(document.body);
+    createItemList(names);
+  };
+
   const createButton = compose(
     addInnerHTML("Add name"),
-    addOnClick(() => addName()),
+    addOnClick(() => onCreate()),
     addElement("button")
   );
 
@@ -84,8 +105,10 @@ const init = async () => {
     addElement("input", "name-input")
   );
 
-  createInput(document.body);
-  createButton(document.body);
-  const names = await createNameList();
-  console.log(JSON.stringify(names));
+  const createInitialUI = (element: HTMLElement) =>
+    ap([createInput, createButton], [element]);
+
+  createInitialUI(document.body);
+  const names = await createNameList(document.body);
+  createItemList(names);
 };

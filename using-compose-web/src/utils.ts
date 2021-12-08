@@ -13,6 +13,11 @@ export const getElementById = (id: string) => () => {
   throw "could not find element";
 };
 
+export const removeElement = () => (element: HTMLElement) => {
+  console.log({ element });
+  element.remove();
+};
+
 export const addInnerHTML = (val: string) => (element: HTMLElement) => {
   element.innerHTML = val;
   return element;
