@@ -40,32 +40,35 @@ const addNameToDB = () => (name: string) => {
   };
 };
 
-const listDB =
-  <T>(storeName: string) =>
-  (): Promise<T[]> => {
-    return new Promise((resolve, reject) => {
-      const transaction = connection.transaction(storeName, "readonly");
-      const store = transaction.objectStore(storeName);
-      const cursor = store.openCursor();
-      const values: T[] = [];
-      cursor.onsuccess = (ev: Event) => {
-        const val = cursor.result;
-        if (val) {
-          values.push(val.value);
-          val.continue();
-        } else {
-          resolve(values);
-        }
-      };
-      cursor.onerror = (ev: Event) => {
-        console.log({ ev });
-        reject(ev);
-      };
-    });
-  };
+const listDB = <T>(storeName: string): Promise<T[]> => {
+  return new Promise((resolve, reject) => {
+    const transaction = connection.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const cursor = store.openCursor();
+    const values: T[] = [];
+    cursor.onsuccess = (ev: Event) => {
+      const val = cursor.result;
+      if (val) {
+        values.push(val.value);
+        val.continue();
+      } else {
+        resolve(values);
+      }
+    };
+    cursor.onerror = (ev: Event) => {
+      console.log({ ev });
+      reject(ev);
+    };
+  });
+};
 
 const init = async () => {
-  const createItemList = forEach((name: string) => {
+  const getAllItemsAndShow = async () => {
+    const names = await listDB<string>("names");
+    addItemToContainer(names);
+  };
+
+  const addItemToContainer = forEach((name: string) => {
     compose(
       addInnerHTML(name),
       addElement("li"),
@@ -73,24 +76,24 @@ const init = async () => {
     )();
   });
 
-  const removeItemList = compose(removeElement(), getElementById("name-list"));
-
-  const createNameList = compose(
-    listDB<string>("names"),
-    addElement("ul", "name-list")
+  const removeListContainer = compose(
+    removeElement(),
+    getElementById("name-list")
   );
 
-  const addName = compose(
+  const createListContainer = compose(addElement("ul", "name-list"));
+
+  const saveName = compose(
     addNameToDB(),
     getValueFrom(),
     getElementById("name-input")
   );
 
   const onCreate = async () => {
-    addName();
-    removeItemList();
-    const names = await createNameList(document.body);
-    createItemList(names);
+    saveName();
+    removeListContainer();
+    createListContainer(document.body);
+    getAllItemsAndShow();
   };
 
   const createButton = compose(
@@ -109,6 +112,5 @@ const init = async () => {
     ap([createInput, createButton], [element]);
 
   createInitialUI(document.body);
-  const names = await createNameList(document.body);
-  createItemList(names);
+  getAllItemsAndShow();
 };
